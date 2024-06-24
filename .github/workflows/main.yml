@@ -41,21 +41,18 @@ jobs:
           dotnet-version: 8.x
 
       - name: Restore dependencies
-        if: ${{ matrix.command == github.event.inputs.command }}
         run: dotnet restore
 
       - name: Build project
-        if: ${{ matrix.command == github.event.inputs.command }}
         run: dotnet publish --self-contained -r ${{ matrix.rid }} -p:PublishSingleFile=true -c Release -o ./publish${{ matrix.ext }}
 
       - name: Create Tag and Release
-        if: ${{ matrix.command == github.event.inputs.command }}
         uses: actions/github-script@v4
         id: create_tag_and_release
         with:
           script: |
             const tagName = `${{ matrix.command }}-${new Date().toISOString().replace(/[:\-T.]/g, '').slice(0, 14)}`;
-            const createTagResponse = await github.git.createRef({
+            await github.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: `refs/tags/${tagName}`,
@@ -72,14 +69,11 @@ jobs:
             });
 
             return createReleaseResponse.data.upload_url;
-          env:
-            GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-
-      - name: Upload Release Asset
-        if: ${{ matrix.command == github.event.inputs.command }}
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_tag_and_release.outputs.result }}
           asset_path: ./publish${{ matrix.ext }}/aws-inventory${{ matrix.ext }}
