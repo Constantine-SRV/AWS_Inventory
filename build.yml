@@ -1,0 +1,66 @@
+name: Build and Archive
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        type: choice
+        description: Build command
+        default: build
+        options:
+          - build
+          - test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      COMMAND: ${{ github.event.inputs.command }}
+      AZURE_STORAGE_ACCOUNT: "constantine2zu"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Execute command
+      run: |
+        if [[ "${{ env.COMMAND }}" == "build" ]]; then
+          echo "Running build..."
+          dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o output
+          tar -czvf BlazorAut.tar.gz -C output .
+        elif [[ "${{ env.COMMAND }}" == "test" ]]; then
+          echo "Running tests..."
+          dotnet test
+        fi
+
+    - name: Upload artifact
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: myapp
+        path: BlazorAut.tar.gz
+        if-no-files-found: ignore
+
+    - name: Install Azure CLI
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+    - name: Upload to Azure Blob Storage
+      env:
+        AZURE_STORAGE_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+      run: |
+        az storage blob upload \
+          --account-name $AZURE_STORAGE_ACCOUNT \
+          --account-key $AZURE_STORAGE_KEY \
+          --container-name web \
+          --file BlazorAut.tar.gz \
+          --name BlazorAut.tar.gz \
+          --overwrite
