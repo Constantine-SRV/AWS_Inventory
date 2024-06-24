@@ -41,38 +41,23 @@ jobs:
           dotnet-version: 8.x
 
       - name: Restore dependencies
+        if: ${{ matrix.command == github.event.inputs.command }}
         run: dotnet restore
 
       - name: Build project
+        if: ${{ matrix.command == github.event.inputs.command }}
         run: dotnet publish --self-contained -r ${{ matrix.rid }} -p:PublishSingleFile=true -c Release -o ./publish${{ matrix.ext }}
 
-      - name: Create Tag
-        id: create_tag
-        uses: actions/github-script@v4
-        with:
-          script: |
-            const tagName = `${{ github.event.inputs.command }}-${new Date().toISOString().replace(/[:\-T.]/g, '').slice(0, 14)}`;
-            github.ref = `refs/tags/${tagName}`;
-            return tagName;
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install GitHub CLI
+        if: ${{ matrix.command == github.event.inputs.command }}
+        run: sudo apt-get install -y gh
+
+      - name: Authenticate GitHub CLI
+        if: ${{ matrix.command == github.event.inputs.command }}
+        run: echo ${{ secrets.GH_TOKEN }} | gh auth login --with-token
 
       - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.create_tag.outputs.result }}
-          release_name: Release ${{ steps.create_tag.outputs.result }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./publish${{ matrix.ext }}/aws-inventory${{ matrix.ext }}
-          asset_name: aws-inventory${{ matrix.ext }}
-          asset_content_type: application/octet-stream
+        if: ${{ matrix.command == github.event.inputs.command }}
+        run: |
+          TAG_NAME=${{ matrix.command }}-$(date +'%Y%m%d%H%M%S')
+          gh release create $TAG_NAME ./publish${{ matrix.ext }}/aws-inventory${{ matrix.ext }} -t "Release $TAG_NAME"
