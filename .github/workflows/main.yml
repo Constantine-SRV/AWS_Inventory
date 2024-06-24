@@ -48,13 +48,13 @@ jobs:
         if: ${{ matrix.command == github.event.inputs.command }}
         run: dotnet publish --self-contained -r ${{ matrix.rid }} -p:PublishSingleFile=true -c Release -o ./publish${{ matrix.ext }}
 
-      - name: List publish directory
-        if: ${{ matrix.command == github.event.inputs.command }}
-        run: ls -la ./publish${{ matrix.ext }}
-
       - name: List root directory
         if: ${{ matrix.command == github.event.inputs.command }}
         run: ls -la ./
+
+      - name: List publish directory
+        if: ${{ matrix.command == github.event.inputs.command }}
+        run: ls -la ./publish${{ matrix.ext }}
 
       - name: Install GitHub CLI (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
@@ -64,14 +64,4 @@ jobs:
 
       - name: Install GitHub CLI (Windows)
         if: matrix.os == 'windows-latest'
-        run: choco install gh
-
-      - name: Authenticate GitHub CLI
-        if: ${{ matrix.command == github.event.inputs.command }}
-        run: echo ${{ secrets.GH_TOKEN }} | gh auth login --with-token
-
-      - name: Create Release
-        if: ${{ matrix.command == github.event.inputs.command }}
-        run: |
-          TAG_NAME=${{ matrix.command }}-$(date +'%Y%m%d%H%M%S')
-          gh release create $TAG_NAME ./publish${{ matrix.ext }}/aws-inventory${{ matrix.ext }} -t "Release $TAG_NAME"
+        run:
