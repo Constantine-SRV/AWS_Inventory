@@ -1,12 +1,16 @@
 name: Build and Publish Single File
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'Build command'
+        required: true
+        default: 'build-windows'
+        type: choice
+        options:
+          - build-windows
+          - build-linux
 
 jobs:
   build:
@@ -14,14 +18,15 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
         include:
           - os: ubuntu-latest
             rid: linux-x64
             ext: ""
+            command: build-linux
           - os: windows-latest
             rid: win-x64
             ext: ".exe"
+            command: build-windows
 
     steps:
       - name: Checkout code
@@ -33,12 +38,15 @@ jobs:
           dotnet-version: 8.x
 
       - name: Restore dependencies
+        if: ${{ matrix.command == github.event.inputs.command }}
         run: dotnet restore
 
       - name: Build project
+        if: ${{ matrix.command == github.event.inputs.command }}
         run: dotnet publish --self-contained -r ${{ matrix.rid }} -p:PublishSingleFile=true -c Release -o ./publish${{ matrix.ext }}
 
       - name: Upload artifact
+        if: ${{ matrix.command == github.event.inputs.command }}
         uses: actions/upload-artifact@v2
         with:
           name: aws-inventory${{ matrix.ext }}
