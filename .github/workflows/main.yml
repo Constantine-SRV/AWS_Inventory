@@ -52,6 +52,10 @@ jobs:
         if: ${{ matrix.command == github.event.inputs.command }}
         run: ls -la ./publish${{ matrix.ext }}
 
+      - name: List root directory
+        if: ${{ matrix.command == github.event.inputs.command }}
+        run: ls -la ./
+
       - name: Install GitHub CLI (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
