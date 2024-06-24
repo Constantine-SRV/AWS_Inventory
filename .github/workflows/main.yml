@@ -9,27 +9,14 @@ on:
       command:
         description: 'Build command'
         required: true
-        default: 'build-windows'
+        default: 'build-all'
         type: choice
         options:
-          - build-windows
-          - build-linux
+          - build-all
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            rid: linux-x64
-            ext: ""
-            command: build-linux
-          - os: windows-latest
-            rid: win-x64
-            ext: ".exe"
-            command: build-windows
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -41,37 +28,35 @@ jobs:
           dotnet-version: 8.x
 
       - name: Restore dependencies
-        if: ${{ matrix.command == github.event.inputs.command }}
         run: dotnet restore
 
-      - name: Build project
-        if: ${{ matrix.command == github.event.inputs.command }}
-        run: dotnet publish --self-contained -r ${{ matrix.rid }} -p:PublishSingleFile=true -c Release -o ./publish${{ matrix.ext }}
+      - name: Build project for Linux
+        run: dotnet publish --self-contained -r linux-x64 -p:PublishSingleFile=true -c Release -o ./publish/linux
+
+      - name: Build project for Windows
+        run: dotnet publish --self-contained -r win-x64 -p:PublishSingleFile=true -c Release -o ./publish/windows
 
       - name: List root directory
-        if: ${{ matrix.command == github.event.inputs.command }}
         run: ls -la ./
 
       - name: List publish directory
-        if: ${{ matrix.command == github.event.inputs.command }}
-        run: ls -la ./publish${{ matrix.ext }}
+        run: ls -la ./publish
 
-      - name: Install GitHub CLI (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
+      - name: List Linux publish directory
+        run: ls -la ./publish/linux
+
+      - name: List Windows publish directory
+        run: ls -la ./publish/windows
+
+      - name: Install GitHub CLI
         run: |
           sudo apt-get update
           sudo apt-get install -y gh
 
-      - name: Install GitHub CLI (Windows)
-        if: matrix.os == 'windows-latest'
-        run: choco install gh
-
       - name: Authenticate GitHub CLI
-        if: ${{ matrix.command == github.event.inputs.command }}
         run: echo ${{ secrets.GH_TOKEN }} | gh auth login --with-token
 
       - name: Create Release
-        if: ${{ matrix.command == github.event.inputs.command }}
         run: |
-          TAG_NAME=${{ matrix.command }}-$(date +'%Y%m%d%H%M%S')
-          gh release create $TAG_NAME ./publish${{ matrix.ext }}/AWS_Inventory${{ matrix.ext }} -t "Release $TAG_NAME"
+          TAG_NAME=build-all-$(date +'%Y%m%d%H%M%S')
+          gh release create $TAG_NAME ./publish/linux/AWS_Inventory ./publish/windows/AWS_Inventory.exe -t "Release $TAG_NAME"
