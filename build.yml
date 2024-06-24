@@ -1,15 +1,6 @@
 name: Build and Archive
 
 on:
-  workflow_dispatch:
-    inputs:
-      command:
-        type: choice
-        description: Build command
-        default: build
-        options:
-          - build
-          - test
 
 jobs:
   build:
@@ -18,17 +9,28 @@ jobs:
       COMMAND: ${{ github.event.inputs.command }}
       AZURE_STORAGE_ACCOUNT: "constantine2zu"
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            ext: ""
+          - os: windows-latest
+            rid: win-x64
+            ext: ".exe"
 
-    - name: Setup .NET
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup .NET
       uses: actions/setup-dotnet@v2
-      with:
+        with:
         dotnet-version: '8.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
     - name: Execute command
       run: |
@@ -41,10 +43,10 @@ jobs:
           dotnet test
         fi
 
-    - name: Upload artifact
+      - name: Upload artifact
       if: always()
-      uses: actions/upload-artifact@v2
-      with:
+        uses: actions/upload-artifact@v2
+        with:
         name: myapp
         path: BlazorAut.tar.gz
         if-no-files-found: ignore
