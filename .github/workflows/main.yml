@@ -74,4 +74,4 @@ jobs:
         if: ${{ matrix.command == github.event.inputs.command }}
         run: |
           TAG_NAME=${{ matrix.command }}-$(date +'%Y%m%d%H%M%S')
-          gh release create $TAG_NAME ./publish${{ matrix.ext }}/aws-inventory${{ matrix.ext }} -t "Release $TAG_NAME"
+          gh release create $TAG_NAME ./publish${{ matrix.ext }}/AWS_Inventory${{ matrix.ext }} -t "Release $TAG_NAME"
