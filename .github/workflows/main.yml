@@ -48,6 +48,10 @@ jobs:
         if: ${{ matrix.command == github.event.inputs.command }}
         run: dotnet publish --self-contained -r ${{ matrix.rid }} -p:PublishSingleFile=true -c Release -o ./publish${{ matrix.ext }}
 
+      - name: List publish directory
+        if: ${{ matrix.command == github.event.inputs.command }}
+        run: ls -la ./publish${{ matrix.ext }}
+
       - name: Install GitHub CLI (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
