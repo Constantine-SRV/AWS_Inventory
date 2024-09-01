@@ -5,6 +5,8 @@ using Amazon.Runtime;
 using Data;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Services
@@ -12,6 +14,8 @@ namespace Services
     public class AwsRegionService
     {
         private readonly AwsCredentials _credentials;
+        private readonly BinaryFileService _binaryFileService = new BinaryFileService();
+        private readonly string _cacheFilePath = "accessibleRegions.bin";
 
         public AwsRegionService(AwsCredentials credentials)
         {
@@ -20,6 +24,12 @@ namespace Services
 
         public async Task<List<RegionEndpoint>> GetAccessibleRegionsAsync()
         {
+            if (File.Exists(_cacheFilePath) && (DateTime.Now - File.GetLastWriteTime(_cacheFilePath)).TotalHours < 24)
+            {
+                var cachedRegions = await _binaryFileService.LoadFromBinaryFileAsync(_cacheFilePath, RegionEndpoint.GetBySystemName);
+                return cachedRegions;
+            }
+
             var accessibleRegions = new List<RegionEndpoint>();
 
             foreach (var region in RegionEndpoint.EnumerableAllRegions)
@@ -34,6 +44,9 @@ namespace Services
                     Console.WriteLine($"Region: {region.SystemName} is not accessible.");
                 }
             }
+
+            var serializableRegions = accessibleRegions.Select(region => region.SystemName).ToList();
+            await _binaryFileService.SaveToBinaryFileAsync(serializableRegions, _cacheFilePath);
 
             return accessibleRegions;
         }
