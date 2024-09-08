@@ -4,7 +4,7 @@
 This program queries all AWS regions and generates XLS files containing information about the discovered objects. AWS credentials should be saved in a JSON file, and the path to this file should be passed to the program as a parameter.
 
 ### AWS Credentials JSON Format
-
+AWS documentation https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html  
 The JSON file format should be as follows:
 
 ```json
