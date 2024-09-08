@@ -33,8 +33,20 @@ jobs:
       - name: Build project for Linux
         run: dotnet publish --self-contained -r linux-x64 -p:PublishSingleFile=true -c Release -o ./publish/linux
 
+      - name: Rename Linux binary
+        run: mv ./publish/linux/AWS_Inventory ./publish/linux/AWS_Inventory_linux
+
       - name: Build project for Windows
         run: dotnet publish --self-contained -r win-x64 -p:PublishSingleFile=true -c Release -o ./publish/windows
+
+      - name: Rename Windows binary
+        run: mv ./publish/windows/AWS_Inventory.exe ./publish/windows/AWS_Inventory_win.exe
+
+      - name: Build project for MacOS
+        run: dotnet publish --self-contained -r osx-x64 -p:PublishSingleFile=true -c Release -o ./publish/macos
+
+      - name: Rename MacOS binary
+        run: mv ./publish/macos/AWS_Inventory ./publish/macos/AWS_Inventory_mac
 
       - name: List root directory
         run: ls -la ./
@@ -48,6 +60,9 @@ jobs:
       - name: List Windows publish directory
         run: ls -la ./publish/windows
 
+      - name: List MacOS publish directory
+        run: ls -la ./publish/macos
+
       - name: Install GitHub CLI
         run: |
           sudo apt-get update
@@ -56,7 +71,16 @@ jobs:
       - name: Authenticate GitHub CLI
         run: echo ${{ secrets.GH_TOKEN }} | gh auth login --with-token
 
+      - name: Delete existing release if exists
+        run: |
+          if gh release view latest_release; then
+            gh release delete latest_release -y
+          fi
+
       - name: Create Release
         run: |
-          TAG_NAME=build-all-$(date +'%Y%m%d%H%M%S')
-          gh release create $TAG_NAME ./publish/linux/AWS_Inventory ./publish/windows/AWS_Inventory.exe -t "Release $TAG_NAME"
+          gh release create latest_release \
+            ./publish/linux/AWS_Inventory_linux \
+            ./publish/windows/AWS_Inventory_win.exe \
+            ./publish/macos/AWS_Inventory_mac \
+            -t "Release latest_release"
