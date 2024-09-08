@@ -56,3 +56,27 @@ The result of the region check will be saved to a file. If the program is rerun 
 
 ### Step 2: Data collection
 The second step collects data from all available regions and saves the results in XLS files. For easier analysis on multiple screens, separate files are created for each type of object. As a result, 19 files named after the corresponding AWS objects will be generated in the current directory.
+
+
+
+## Currently, the following types of objects are gathered:
+
+- **AWS Secrets Manager - Secrets** (`awsSecretsYYYY-MM-DD-HHmmss.xlsx`)
+- **RDS - Subnet groups** (`DbSubnetGroups_YYYY-MM-DD-HHmmss.xlsx`)
+- **EC2** (`EC2Instances_YYYY-MM-DD-HHmmss.xlsx`)
+- **Amazon Elastic Container Service - Clusters** (`ECSClusters_YYYY-MM-DD-HHmmss.xlsx`)
+- **Amazon Elastic Container Service - Clusters - Services** (`ECSInstances_YYYY-MM-DD-HHmmss.xlsx`)
+- **ServiceArn** (`ECSServices_YYYY-MM-DD-HHmmss.xlsx`)
+- **Amazon EFS - File systems - Access points** (`EFSAccessPoints_YYYY-MM-DD-HHmmss.xlsx`)
+- **Amazon EFS - File systems** (`EFSFileSystems_YYYY-MM-DD-HHmmss.xlsx`)
+- **Elastic IP addresses** (`ElasticIPs_YYYY-MM-DD-HHmmss.xlsx`)
+- **IAM - Policies** (`IamPolicies_YYYY-MM-DD-HHmmss.xlsx`)
+- **IAM - Roles** (`IamRoles_YYYY-MM-DD-HHmmss.xlsx`)
+- **IAM - Users** (`IamUsers_YYYY-MM-DD-HHmmss.xlsx`)
+- **Launch Templates** (`LaunchTemplates_YYYY-MM-DD-HHmmss.xlsx`)
+- **EC2 - Load balancers** (`LoadBalancers_YYYY-MM-DD-HHmmss.xlsx`)
+- **RDS - Databases** (`RDSInstances_YYYY-MM-DD-HHmmss.xlsx`)
+- **Route 53 - Hosted zones** (`Route53HostedZones_YYYY-MM-DD-HHmmss.xlsx`)
+- **Amazon S3 - Buckets** (`S3Buckets_YYYY-MM-DD-HHmmss.xlsx`)
+- **Security Groups - Rules** (`SecurityGroupRules_YYYY-MM-DD-HHmmss.xlsx`)
+- **Security Groups** (`SecurityGroups_YYYY-MM-DD-HHmmss.xlsx`)
